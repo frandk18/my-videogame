@@ -10,7 +10,6 @@ var canvas = null,
     pause = true,
     dir = 0,
     score = 0,
-    //player = null,
     food = null,
     //wall = new Array(),
     gameover = true,
@@ -119,12 +118,10 @@ function paint(ctx) {
 }
 
 function act() {
-
     var i = 0,
         l = 0;
 
     if (!pause) {
-
         // GameOver Reset
         if (gameover) {
             reset();
@@ -183,6 +180,7 @@ function act() {
             if (body[0].intersects(body[i])) {
                 gameover = true;
                 pause = true;
+                aDie.play();
             }
         }
 
@@ -192,6 +190,7 @@ function act() {
             score += 1;
             food.x = random(canvas.width / 10 - 1) * 10;
             food.y = random(canvas.height / 10 - 1) * 10;
+            aEat.play();
         }
 
         // Wall Intersects
@@ -233,9 +232,10 @@ function init() {
     // Load assets
     iBody.src = 'assets/body.png';
     iFood.src = 'assets/fruit.png';
+    aEat.src = 'assets/chomp.oga';
+    aDie.src = 'assets/dies.oga';
 
-    // Create player and food
-    //player = new Rectangle(40, 40, 10, 10);
+    // Create food
     food = new Rectangle(80, 80, 10, 10);
 
     // Create walls
