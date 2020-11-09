@@ -262,6 +262,15 @@
         act();
     }
 
+    function resize() {
+        var w = window.innerWidth / canvas.width;
+        var h = window.innerHeight / canvas.height;
+        var scale = Math.min(h, w);
+
+        canvas.style.width = (canvas.width * scale) + 'px';
+        canvas.style.height = (canvas.height * scale) + 'px';
+    }
+
     function init() {
 
         // Get canvas and context
@@ -279,6 +288,9 @@
             aDie.src = 'assets/dies.m4a';
         }
 
+        // Resize canvas
+        resize();
+
         // Create food
         food = new Rectangle(80, 80, 10, 10);
 
@@ -288,4 +300,5 @@
     }
 
     window.addEventListener('load', init, false);
+    window.addEventListener('resize', resize, false);
 }(window));
