@@ -23,7 +23,10 @@
         lastUpdate = 0,
         FPS = 0,
         frames = 0,
-        acumDelta = 0;
+        acumDelta = 0,
+        interval = 50,
+        CPS = 0,
+        cicles = 0;
 
     window.requestAnimationFrame = (function () {
         return window.requestAnimationFrame ||
@@ -139,9 +142,10 @@
             ctx.textAlign = 'left';
         }
 
-        // Draw FPS
+        // Draw FPS and CPS
         ctx.fillStyle = '#fff';
         ctx.fillText('FPS: ' + FPS, 260, 10);
+        ctx.fillText('CPS: ' + CPS, 260, 20);
     }
 
     function act() {
@@ -232,23 +236,30 @@
 
     function repaint() {
         window.requestAnimationFrame(repaint);
+        frames++;
         paint(ctx);
     }
 
     function run() {
-        //setTimeout(run, 50);
-        window.requestAnimationFrame(run);
+        setTimeout(run, interval);
+        //window.requestAnimationFrame(run);
+        /*setTimeout( function () {
+            window.requestAnimationFrame(run)
+        }, 50);*/
         var now = Date.now(),
         deltaTime = (now - lastUpdate) / 1000;
         if (deltaTime > 1) {
             deltaTime = 0;
         }
         lastUpdate = now;
-        frames += 1;
+
+        cicles += 1;
         acumDelta += deltaTime;
         if (acumDelta > 1) {
             FPS = frames;
+            CPS = cicles;
             frames = 0;
+            cicles = 0;
             acumDelta -= 1;
         }
         act();
