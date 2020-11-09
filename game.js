@@ -14,18 +14,21 @@
         dir = 0,
         score = 0,
         food = null,
-        //wall = [],
         gameover = true,
         body = [],
         iBody = new Image(),
         iFood = new Image(),
         aEat = new Audio(),
-        aDie = new Audio();
+        aDie = new Audio(),
+        lastUpdate = 0,
+        FPS = 0,
+        frames = 0,
+        acumDelta = 0;
 
     window.requestAnimationFrame = (function () {
         return window.requestAnimationFrame ||
-            window.mozRequestAnimationFrame ||
             window.webkitRequestAnimationFrame ||
+            window.mozRequestAnimationFrame ||
             function (callback) {
                 window.setTimeout(callback, 17);
             };
@@ -40,37 +43,6 @@
         this.y = (y === undefined) ? 0 : y;
         this.width = (width === undefined) ? 0 : width;
         this.height = (height === undefined) ? this.width : height;
-
-        /*this.intersects = function (rect) {
-            if (rect === undefined) {
-                window.console.warn('Missing parameters on function intersects');
-            } else {
-                return (this.x < rect.x + rect.width &&
-                    this.x + this.width > rect.x &&
-                    this.y < rect.y + rect.height &&
-                    this.y + this.height > rect.y);
-            }
-        };
-
-        this.fill = function (ctx) {
-            if (ctx === undefined) {
-                window.console.warn('Missing parameters on function fill');
-            } else {
-                ctx.fillRect(this.x, this.y, this.width, this.height);
-            }
-        };
-
-        this.drawImage = function (ctx, img) {
-            if (img === undefined) {
-                window.console.warn('Missing parameters on function drawImage');
-            } else {
-                if (img.width) {
-                    ctx.drawImage(img, this.x, this.y);
-                } else {
-                    ctx.strokeRect(this.x, this.y, this.width, this.height);
-                }
-            }
-        };*/
     }
 
     Rectangle.prototype = {
@@ -143,24 +115,12 @@
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         // Draw player
-        //ctx.fillStyle = '#0f0';
         ctx.strokeStyle = '#f00';
         for (i = 0, l = body.length; i < l; i += 1) {
-            //body[i].fill(ctx);
-            //ctx.drawImage(iBody, body[i].x, body[i].y);
             body[i].drawImage(ctx, iBody);
         }
 
-        // Draw walls
-        //ctx.fillStyle = '#999';
-        //for (i = 0, l = wall.length; i < l; i += 1) {
-        //    wall[i].fill(ctx);
-        //}
-
         // Draw food
-        //ctx.fillStyle = '#f00';
-        //food.fill(ctx);
-        //ctx.drawImage(iFood, food.x, food.y);
         ctx.strokeStyle = '#f00';
         food.drawImage(ctx, iFood);
 
@@ -178,13 +138,19 @@
             }
             ctx.textAlign = 'left';
         }
+
+        // Draw FPS
+        ctx.fillStyle = '#fff';
+        ctx.fillText('FPS: ' + FPS, 260, 10);
     }
 
     function act() {
+
         var i = 0,
             l = 0;
 
         if (!pause) {
+
             // GameOver Reset
             if (gameover) {
                 reset();
@@ -255,19 +221,6 @@
                 food.y = random(canvas.height / 10 - 1) * 10;
                 aEat.play();
             }
-
-            // Wall Intersects
-            //for (i = 0, l = wall.length; i < l; i += 1) {
-            //    if (food.intersects(wall[i])) {
-            //        food.x = random(canvas.width / 10 - 1) * 10;
-            //        food.y = random(canvas.height / 10 - 1) * 10;
-            //    }
-    //
-            //    if (player.intersects(wall[i])) {
-            //        gameover = true;
-            //        pause = true;
-            //    }
-            //}
         }
 
         // Pause/Unpause
@@ -283,11 +236,26 @@
     }
 
     function run() {
-        setTimeout(run, 50);
+        //setTimeout(run, 50);
+        window.requestAnimationFrame(run);
+        var now = Date.now(),
+        deltaTime = (now - lastUpdate) / 1000;
+        if (deltaTime > 1) {
+            deltaTime = 0;
+        }
+        lastUpdate = now;
+        frames += 1;
+        acumDelta += deltaTime;
+        if (acumDelta > 1) {
+            FPS = frames;
+            frames = 0;
+            acumDelta -= 1;
+        }
         act();
     }
 
     function init() {
+
         // Get canvas and context
         canvas = document.getElementById('canvas');
         ctx = canvas.getContext('2d');
@@ -305,12 +273,6 @@
 
         // Create food
         food = new Rectangle(80, 80, 10, 10);
-
-        // Create walls
-        //wall.push(new Rectangle(100, 50, 10, 10));
-        //wall.push(new Rectangle(100, 100, 10, 10));
-        //wall.push(new Rectangle(200, 50, 10, 10));
-        //wall.push(new Rectangle(200, 100, 10, 10));
 
         // Start game
         run();
