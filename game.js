@@ -143,9 +143,9 @@
         }
 
         // Draw FPS and CPS
-        ctx.fillStyle = '#fff';
+        /*ctx.fillStyle = '#fff';
         ctx.fillText('FPS: ' + FPS, 260, 10);
-        ctx.fillText('CPS: ' + CPS, 260, 20);
+        ctx.fillText('CPS: ' + CPS, 260, 20);*/
     }
 
     function act() {
@@ -242,11 +242,8 @@
 
     function run() {
         setTimeout(run, interval);
-        //window.requestAnimationFrame(run);
-        /*setTimeout( function () {
-            window.requestAnimationFrame(run)
-        }, 50);*/
-        var now = Date.now(),
+
+        /*var now = Date.now(),
         deltaTime = (now - lastUpdate) / 1000;
         if (deltaTime > 1) {
             deltaTime = 0;
@@ -261,7 +258,7 @@
             frames = 0;
             cicles = 0;
             acumDelta -= 1;
-        }
+        }*/
         act();
     }
 
