@@ -26,7 +26,10 @@
         gameScene = null,
         highscores = [],
         posHighscore = 10,
-        highscoresScene = null;
+        highscoresScene = null,
+        bonus = null,
+        iBonus = new Image(),
+        bonusFlag = true;
 
     window.requestAnimationFrame = (function () {
         return window.requestAnimationFrame ||
@@ -150,6 +153,7 @@
         // Load assets
         iBody.src = 'assets/body.png';
         iFood.src = 'assets/fruit.png';
+        iBonus.src = 'assets/bonus.png';
         if (canPlayOgg()) {
             aEat.src = 'assets/chomp.oga';
             aDie.src = 'assets/dies.oga';
@@ -165,6 +169,9 @@
 
         // Create food
         food = new Rectangle(80, 80, 10, 10);
+
+        // Create bonus
+        bonus = new Rectangle(70, 70, 10, 10);
 
         // Start game
         run();
@@ -206,6 +213,8 @@
         body.push(new Rectangle(20, 40, 10, 10));
         food.x = random(canvas.width / 10 - 1) * 10;
         food.y = random(canvas.height / 10 - 1) * 10;
+        bonus.x = -10;
+        bonus.y = -10;
         gameover = false;
     };
 
@@ -226,6 +235,20 @@
         // Draw food
         ctx.strokeStyle = '#f00';
         food.drawImage(ctx, iFood);
+
+        // Draw bonus
+        if (random(1000) <= 10 && bonusFlag) {
+            if (!pause) {
+                bonus.x = random(canvas.width / 10 - 1) * 10;
+                bonus.y = random(canvas.height / 10 - 1) * 10;
+                bonusFlag = false;
+                setTimeout(function() {
+                    bonusFlag = true;
+                }, 4000);
+            }
+        }
+        ctx.strokeStyle = '#f00';
+        bonus.drawImage(ctx, iBonus);
 
         // Draw score
         ctx.fillStyle = '#fff';
@@ -317,6 +340,14 @@
                 score += 1;
                 food.x = random(canvas.width / 10 - 1) * 10;
                 food.y = random(canvas.height / 10 - 1) * 10;
+                aEat.play();
+            }
+
+            // Bonus Intersects
+            if (body[0].intersects(bonus)) {
+                score += 3;
+                bonus.x = -10;
+                bonus.y = -10;
                 aEat.play();
             }
         }
