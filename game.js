@@ -145,6 +145,28 @@
         localStorage.highscores = highscores.join(',');
     }
 
+    function sendScore(rtScore) {
+        const endPoint = "https://jsonplaceholder.typicode.com/posts";
+        const options = {
+            method: 'POST',
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8',
+            },
+            body: JSON.stringify({
+                score: rtScore})
+        };
+        fetch(endPoint, options)
+        .then(response => response.json())
+        .then(data => {
+            console.log("Score sent successfully");
+            console.log(data);
+        })
+        .catch(error => {
+            console.log("Error trying to send the score");
+            console.log(error);
+        });
+    }
+
     function init() {
         // Get canvas and context
         canvas = document.getElementById('canvas');
@@ -349,6 +371,7 @@
                 bonus.x = -10;
                 bonus.y = -10;
                 aEat.play();
+                sendScore(score);
             }
         }
 
