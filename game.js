@@ -25,7 +25,11 @@
         bufferCtx = null,
         bufferScale = 1,
         bufferOffsetX = 0,
-        bufferOffsetY = 0;
+        bufferOffsetY = 0,
+        currentScene = 0,
+        scenes = [],
+        mainScene = null,
+        gameScene = null;
 
     window.requestAnimationFrame = (function () {
         return window.requestAnimationFrame ||
@@ -85,6 +89,26 @@
         }
     };
 
+    function Scene() {
+        this.id = scenes.length;
+        scenes.push(this);
+    }
+
+    Scene.prototype = {
+        constructor: Scene,
+
+        load: function () {},
+
+        paint: function (ctx) {},
+
+        act: function () {}
+    };
+
+    function loadScene(scene) {
+        currentScene = scene.id;
+        scenes[currentScene].load();
+    }
+
     function random(max) {
         return ~~(Math.random() * max);
     }
@@ -98,19 +122,114 @@
         }
     }
 
-    function reset() {
+    function repaint() {
+        window.requestAnimationFrame(repaint);
+        if (scenes.length) {
+            scenes[currentScene].paint(bufferCtx);
+        }
+
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.imageSmoothingEnabled = false;
+        ctx.webkitImageSmoothingEnabled = false;
+        ctx.mozImageSmoothingEnabled = false;
+        ctx.msImageSmoothingEnabled = false;
+        ctx.oImageSmoothingEnabled = false;
+        ctx.drawImage(buffer, bufferOffsetX, bufferOffsetY, buffer.width * bufferScale, buffer.height * bufferScale);
+    }
+
+    function run() {
+        setTimeout(run, interval);
+        if (scenes.length) {
+            scenes[currentScene].act();
+        }
+    }
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height    = window.innerHeight;
+
+        var w = window.innerWidth / buffer.width;
+        var h = window.innerHeight / buffer.height;
+        bufferScale = Math.min(h, w);
+
+        bufferOffsetX = (canvas.width - (buffer.width * bufferScale)) / 2;
+        bufferOffsetY = (canvas.height - (buffer.height * bufferScale)) / 2;
+    }
+
+    function init() {
+
+        // Get canvas and context
+        canvas = document.getElementById('canvas');
+        ctx = canvas.getContext('2d');
+        canvas.width = 600;
+        canvas.height = 300;
+
+        // Load buffer
+        buffer = document.createElement('canvas');
+        bufferCtx = buffer.getContext('2d');
+        buffer.width = 300;
+        buffer.height = 150;
+
+        // Load assets
+        iBody.src = 'assets/body.png';
+        iFood.src = 'assets/fruit.png';
+        if (canPlayOgg()) {
+            aEat.src = 'assets/chomp.oga';
+            aDie.src = 'assets/dies.oga';
+        } else {
+            aEat.src = 'assets/chomp.m4a';
+            aDie.src = 'assets/dies.m4a';
+        }
+
+        // Create food
+        food = new Rectangle(80, 80, 10, 10);
+
+        // Start game
+        resize();
+        run();
+        repaint();
+    }
+
+    // Main Scene
+    mainScene = new Scene();
+
+    mainScene.paint = function (ctx) {
+
+        // Clean canvas
+        ctx.fillStyle = '#030';
+        ctx.fillRect(0, 0, buffer.width, buffer.height);
+
+        // Draw title
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'center';
+        ctx.fillText('SNAKE', 150, 60);
+        ctx.fillText('Press Enter', 150, 90);
+    };
+
+    mainScene.act = function () {
+        // Load next scene
+        if (lastPress === KEY_ENTER) {
+            loadScene(gameScene);
+            lastPress = null;
+        }
+    };
+
+    gameScene = new Scene();
+
+    gameScene.load = function () {
         score = 0;
         dir = 1;
         body.length = 0;
         body.push(new Rectangle(40, 40, 10, 10));
-        body.push(new Rectangle(0, 0, 10, 10));
-        body.push(new Rectangle(0, 0, 10, 10));
+        body.push(new Rectangle(30, 40, 10, 10));
+        body.push(new Rectangle(20, 40, 10, 10));
         food.x = random(buffer.width / 10 - 1) * 10;
         food.y = random(buffer.height / 10 - 1) * 10;
         gameover = false;
-    }
+    };
 
-    function paint(ctx) {
+    gameScene.paint = function (ctx) {
         var i = 0,
             l = 0;
 
@@ -142,16 +261,16 @@
             }
             ctx.textAlign = 'left';
         }
-    }
+    };
 
-    function act() {
+    gameScene.act = function () {
         var i = 0,
             l = 0;
 
         if (!pause) {
             // GameOver Reset
             if (gameover) {
-                reset();
+                loadScene(mainScene);
             }
 
             // Move Body
@@ -226,72 +345,7 @@
             pause = !pause;
             lastPress = null;
         }
-    }
-
-    function repaint() {
-        window.requestAnimationFrame(repaint);
-        paint(bufferCtx);
-
-        ctx.fillStyle = '#000';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.imageSmoothingEnabled = false;
-        ctx.webkitImageSmoothingEnabled = false;
-        ctx.mozImageSmoothingEnabled = false;
-        ctx.msImageSmoothingEnabled = false;
-        ctx.oImageSmoothingEnabled = false;
-        ctx.drawImage(buffer, bufferOffsetX, bufferOffsetY, buffer.width * bufferScale, buffer.height * bufferScale);
-    }
-
-    function run() {
-        setTimeout(run, interval);
-        act();
-    }
-
-    function resize() {
-        canvas.width = window.innerWidth;
-        canvas.height    = window.innerHeight;
-
-        var w = window.innerWidth / buffer.width;
-        var h = window.innerHeight / buffer.height;
-        bufferScale = Math.min(h, w);
-
-        bufferOffsetX = (canvas.width - (buffer.width * bufferScale)) / 2;
-        bufferOffsetY = (canvas.height - (buffer.height * bufferScale)) / 2;
-    }
-
-    function init() {
-
-        // Get canvas and context
-        canvas = document.getElementById('canvas');
-        ctx = canvas.getContext('2d');
-        canvas.width = 600;
-        canvas.height = 300;
-
-        // Load buffer
-        buffer = document.createElement('canvas');
-        bufferCtx = buffer.getContext('2d');
-        buffer.width = 300;
-        buffer.height = 150;
-
-        // Load assets
-        iBody.src = 'assets/body.png';
-        iFood.src = 'assets/fruit.png';
-        if (canPlayOgg()) {
-            aEat.src = 'assets/chomp.oga';
-            aDie.src = 'assets/dies.oga';
-        } else {
-            aEat.src = 'assets/chomp.m4a';
-            aDie.src = 'assets/dies.m4a';
-        }
-
-        // Create food
-        food = new Rectangle(80, 80, 10, 10);
-
-        // Start game
-        resize();
-        run();
-        repaint();
-    }
+    };
 
     window.addEventListener('load', init, false);
     window.addEventListener('resize', resize, false);
